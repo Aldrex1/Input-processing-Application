@@ -8,6 +8,7 @@
 
 int main(int argc, char const *argv[])
 {
+    //defining and initializing some variables
     char func[20];
     int size = 0;
     prec = 6;
@@ -15,17 +16,37 @@ int main(int argc, char const *argv[])
     double thres = 0;
     enum filter_type filter_v = -1;
     
+    //function to check what function we need to use
     void grateful(char *func, double *test1, int test_size, int size, double shift_v, double thres, enum filter_type filter_v);
 
+    //loop to take the input from the terminal
     for(int i = 1; i<argc; i++){
+        //checking the size
         if(strncmp(argv[i], "-size=", 6) == 0){
-            const char *size_char = argv[i];
-            size = size_char[6]-48;
+            int length = strlen(argv[i]);
+            //creating a copy of argv
+            char size_str[100];
+            char argv_cpy[100];
+            strcpy(argv_cpy, argv[i]);
+            int test = 0;
+            //copying everything after the = into another string
+            while(test < length){
+                size_str[test] = argv_cpy[6+test];
+                test++;
+            }
+            
+            //converting the string into an integer
+            int final = atoi(size_str);
+            
+            size = final;
+            //checking if the size is valid
             if(size < 1){
                 fprintf(stderr, "FATAL ERROR: Invalid size\n");
                 exit(1);
-            }
+            } 
 
+            
+        //checking the precision
         } else if (strncmp(argv[i], "-prec=", 6) == 0){
             const char *prec_char = argv[i];
             prec = prec_char[6]-48;
@@ -33,14 +54,14 @@ int main(int argc, char const *argv[])
                 fprintf(stderr, "FATAL ERROR: Invalid precision\n");
                 exit(1);
             }
-
+        //checking the function SHIFT
         } else if ((strcasecmp(argv[i], "SHIFT") == 0)){
             strncpy(func, argv[i], sizeof(func) - 1);
             func[sizeof(func) - 1] = '\0';
             char* end;
             shift_v = strtod(argv[i+1], &end);
             i++;
-
+        //checking the function FILTER
         } else if ((strcasecmp(argv[i], "FILTER") == 0)){
             strncpy(func, argv[i], sizeof(func) - 1);
             func[sizeof(func) - 1] = '\0';
@@ -64,18 +85,21 @@ int main(int argc, char const *argv[])
             char* end;
             thres = strtod(argv[i+2], &end);
             i+=2;
-
+        //if the function is not valid
         } else {
             strncpy(func, argv[i], sizeof(func) - 1);
             func[sizeof(func) - 1] = '\0';
         }
     }
 
+    
+
     char *buffer;
-    size_t bufsize = 32;
+    size_t size_of_buffer = 512;
     size_t characters;
 
-    buffer = (char *)malloc(bufsize * sizeof(char));
+    //buffer will take the input from stdin so we need to allocate some memory for it
+    buffer = (char *)malloc(size_of_buffer * sizeof(char));
     if( buffer == NULL)
     {
         fprintf(stderr, "FATAL ERROR: No memory available\n");
@@ -83,9 +107,9 @@ int main(int argc, char const *argv[])
     }
 
 
-    while((characters = getline(&buffer,&bufsize,stdin)) != -1){
+    while((characters = getline(&buffer,&size_of_buffer,stdin)) != -1){
         
-        //Default size
+        //if Default size
         if(size == 0){
             
             double test[256] = { 0 };
@@ -164,11 +188,7 @@ int main(int argc, char const *argv[])
                 if(i >= size){
                     int temp = size;
                     
-                    /*
-                    if(size != i){
-                        size = i;
-                    }
-                    */
+          
 
                     double test1[size];
                     
@@ -224,7 +244,7 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
-
+//function to check what function we need to use
 void grateful(char *func, double *test1, int test_size, int size, double shift_v, double thres, enum filter_type filter_v){
     if((strcasecmp(func, "MAX") == 0) || (strcasecmp(func, "MIN") == 0) || (strcasecmp(func, "COUNT") == 0) || (strcasecmp(func, "SUM") == 0) || (strcasecmp(func, "AVG") == 0) || (strcasecmp(func, "PAVG") == 0)){
         double agg = aggregate(func, test1, test_size);
